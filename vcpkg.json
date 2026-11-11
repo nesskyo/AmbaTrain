@@ -1,0 +1,14 @@
+{
+  "name": "ambatrain",
+  "version-string": "1.0.0",
+  "description": "AmbaTrain - Gothic Shakespearean Train Booking System C++ Crow Backend",
+  "dependencies": [
+    "crow",
+    "libpqxx",
+    "nlohmann-json",
+    "jwt-cpp",
+    "libsodium",
+    "gtest"
+  ]
+}
+
