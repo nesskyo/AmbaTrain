@@ -21,7 +21,7 @@ public:
         ([this](const crow::request& req, int booking_id) {
             auto auth = middleware::AuthGuard::authenticate(req, config_.jwt_secret);
             if (!auth.is_valid) {
-                return *auth.error_response;
+                return utils::ResponseUtils::unauthorized(auth.error_message);
             }
 
             try {
@@ -50,7 +50,7 @@ public:
         ([this](const crow::request& req, int booking_id) {
             auto auth = middleware::AuthGuard::authenticate(req, config_.jwt_secret);
             if (!auth.is_valid) {
-                return *auth.error_response;
+                return utils::ResponseUtils::unauthorized(auth.error_message);
             }
 
             try {
@@ -69,7 +69,7 @@ public:
         ([this](const crow::request& req, std::string code) {
             auto auth = middleware::AuthGuard::authenticate(req, config_.jwt_secret);
             if (!auth.is_valid) {
-                return *auth.error_response;
+                return utils::ResponseUtils::unauthorized(auth.error_message);
             }
 
             bool is_admin = (auth.claims.role == "admin");
@@ -124,7 +124,7 @@ public:
         ([this](const crow::request& req) {
             auto auth = middleware::AuthGuard::authenticate(req, config_.jwt_secret);
             if (!auth.is_valid) {
-                return *auth.error_response;
+                return utils::ResponseUtils::unauthorized(auth.error_message);
             }
 
             try {

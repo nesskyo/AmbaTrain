@@ -24,21 +24,22 @@ public:
     struct AuthResult {
         bool is_valid = false;
         utils::JwtClaims claims;
-        std::optional<crow::response> error_response;
+        int status_code = 0;
+        std::string error_message;
     };
 
     static AuthResult authenticate(const crow::request& req, const std::string& jwt_secret) {
         auto token_opt = extract_bearer_token(req);
         if (!token_opt) {
-            return {false, {}, utils::ResponseUtils::unauthorized("Segel masuk (token) tiada ditemukan. Silakan masuk terlebih dahulu.")};
+            return {false, {}, 401, "Segel masuk (token) tiada ditemukan. Silakan masuk terlebih dahulu."};
         }
 
         auto claims_opt = utils::JwtUtils::verify_token(*token_opt, jwt_secret);
         if (!claims_opt) {
-            return {false, {}, utils::ResponseUtils::unauthorized("Segel masuk (token) telah pudar atau tiada sah.")};
+            return {false, {}, 401, "Segel masuk (token) telah pudar atau tiada sah."};
         }
 
-        return {true, *claims_opt, std::nullopt};
+        return {true, *claims_opt, 0, ""};
     }
 
     static AuthResult require_admin(const crow::request& req, const std::string& jwt_secret) {
@@ -46,7 +47,7 @@ public:
         if (!auth.is_valid) return auth;
 
         if (auth.claims.role != "admin") {
-            return {false, auth.claims, utils::ResponseUtils::forbidden("Hanya sang Conductor (Admin) yang berhak menginjak ruangan ini.")};
+            return {false, auth.claims, 403, "Hanya sang Conductor (Admin) yang berhak menginjak ruangan ini."};
         }
 
         return auth;
@@ -54,4 +55,3 @@ public:
 };
 
 } // namespace ambatrain::middleware
-

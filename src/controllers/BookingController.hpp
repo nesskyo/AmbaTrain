@@ -21,7 +21,7 @@ public:
         ([this](const crow::request& req) {
             auto auth = middleware::AuthGuard::authenticate(req, config_.jwt_secret);
             if (!auth.is_valid) {
-                return *auth.error_response;
+                return utils::ResponseUtils::unauthorized(auth.error_message);
             }
 
             try {
