@@ -2,12 +2,29 @@
   "version": 2,
   "cleanUrls": true,
   "rewrites": [
-    { "source": "/", "destination": "/frontend/index.html" },
-    { "source": "/seats", "destination": "/frontend/seats.html" },
-    { "source": "/checkout", "destination": "/frontend/checkout.html" },
-    { "source": "/ticket", "destination": "/frontend/ticket.html" },
-    { "source": "/chronicle", "destination": "/frontend/chronicle.html" },
-    { "source": "/(.*)", "destination": "/frontend/$1" }
+    {
+      "source": "/",
+      "destination": "/frontend/index.html"
+    },
+    {
+      "source": "/seats",
+      "destination": "/frontend/seats.html"
+    },
+    {
+      "source": "/checkout",
+      "destination": "/frontend/checkout.html"
+    },
+    {
+      "source": "/ticket",
+      "destination": "/frontend/ticket.html"
+    },
+    {
+      "source": "/chronicle",
+      "destination": "/frontend/chronicle.html"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/frontend/$1"
+    }
   ]
 }
-

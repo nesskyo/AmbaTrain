@@ -66,7 +66,10 @@
                 <a href="chronicle.html" class="hover:text-gold transition">Kronik</a>
                 <a href="#about" class="hover:text-gold transition">Tentang</a>
             </nav>
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-3">
+                <button onclick="promptApiUrl()" class="border border-gold/40 text-ash hover:text-crystal text-[11px] font-mono px-3 py-1.5 rounded transition flex items-center gap-1.5" title="Klik untuk mengubah URL server backend">
+                    <span>⚙️</span> <span id="nav-backend-label">Backend</span>
+                </button>
                 <a href="auth.html" class="border border-gold/60 text-gold text-xs uppercase tracking-wider px-4 py-2 rounded hover:bg-gold/10 transition font-heading">
                     Enter the Realm
                 </a>
@@ -249,13 +252,25 @@
 
             } catch (err) {
                 resultsList.innerHTML = `
-                    <div class="border border-crimson/50 bg-crimson/10 text-crimson-glow p-6 rounded text-center">
+                    <div class="border border-crimson/50 bg-crimson/10 text-crimson-glow p-6 rounded text-center space-y-3">
                         <p class="font-heading font-bold">${err.message}</p>
-                        <p class="text-xs text-ash mt-1">Pastikan server C++ berjalan dan terkoneksi ke Supabase.</p>
+                        <p class="text-xs text-ash">Frontend masih memanggil localhost:8080 atau belum terhubung ke URL Web Service Render Anda.</p>
+                        <div class="pt-2">
+                            <button onclick="promptApiUrl()" class="gothic-glow-btn text-bone text-xs font-heading uppercase px-5 py-2.5 rounded font-bold">
+                                ⚙️ Masukkan URL Web Service Render Anda
+                            </button>
+                        </div>
                     </div>
                 `;
             }
         });
+
+        // Tampilkan label backend aktif di navbar
+        const activeUrl = localStorage.getItem('ambatrain_api_base') || 'http://localhost:8080/api';
+        const labelElem = document.getElementById('nav-backend-label');
+        if (labelElem) {
+            labelElem.innerText = activeUrl.includes('render.com') ? 'Render Live' : 'Backend (Ubah)';
+        }
     </script>
 </body>
 </html>
