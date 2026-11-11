@@ -275,18 +275,19 @@ HOLD_MINUTES=15
   - `GET /api/stations`: Daftar gerbang stasiun terurut.
 - [x] **Integration:** Seluruh route terkoneksi di [`src/main.cpp`](file:///c:/Users/MY%20VICTUS/Desktop/AmbaTrain/src/main.cpp) dan script uji otomatis [`scripts/test_auth.py`](file:///c:/Users/MY%20VICTUS/Desktop/AmbaTrain/scripts/test_auth.py).
 
-### Fase 3: Pencarian Jadwal & Visualisasi Denah Kursi (Minggu 3)
-- [ ] **Schedule Search API (`GET /api/schedules`):**
-  - Parameter query: `from` (origin ID), `to` (destination ID), `date` (YYYY-MM-DD), `pax` (jumlah penumpang).
-  - Menggabungkan data kereta, kelas (`sovereign`, `noble`, `yeoman`), jam berangkat, jam tiba, durasi perjalanan, dan harga.
-  - Menghitung **sisa kursi aktual real-time** dengan query agregasi yang mengurangi total kursi terhadap kursi aktif (`seat_active = TRUE` dan booking belum kedaluwarsa).
-- [ ] **Seat Layout API (`GET /api/schedules/:id/seats`):**
-  - Mengembalikan daftar seluruh gerbong (`carriages`) beserta nomor kursi (`seats`) untuk jadwal terkait.
-  - Memberikan status dinamis untuk setiap kursi:
-    - `available`: Kursi bebas dan dapat dipilih.
-    - `held`: Kursi sedang ditahan oleh user lain dalam jendela 15 menit.
-    - `booked`: Kursi sudah lunas (`status = 'paid'`).
-- [ ] **Frontend Interaktif:** Implementasi tampilan awal halaman pencarian rute dan denah kursi gerbong bergaya kristal JRPG.
+### Fase 3: Pencarian Jadwal & Visualisasi Denah Kursi (Minggu 3) [STATUS: SELESAI ✅]
+- [x] **Schedule Search API ([`ScheduleRepository.hpp`](file:///c:/Users/MY%20VICTUS/Desktop/AmbaTrain/src/repositories/ScheduleRepository.hpp) & [`ScheduleController.hpp`](file:///c:/Users/MY%20VICTUS/Desktop/AmbaTrain/src/controllers/ScheduleController.hpp)):**
+  - Parameter query: `from`, `to`, `date`, `pax`.
+  - Agregasi data kereta (Sovereign, Noble, Yeoman), jam berangkat, jam tiba, durasi, harga.
+  - Kalkulasi sisa kursi real-time (mengurangkan total kursi dengan kursi aktif pada booking `paid` dan `held` belum kedaluwarsa).
+- [x] **Seat Layout API ([`SeatRepository.hpp`](file:///c:/Users/MY%20VICTUS/Desktop/AmbaTrain/src/repositories/SeatRepository.hpp)):**
+  - `GET /api/schedules/:id/seats`: Mengelompokkan seluruh gerbong dan kursi dengan status dinamis (`available`, `held` 15 menit, `booked`).
+- [x] **Service Layer Validation ([`ScheduleService.hpp`](file:///c:/Users/MY%20VICTUS/Desktop/AmbaTrain/src/services/ScheduleService.hpp)):**
+  - Validasi jarak rute (`from != to`), format tanggal ISO8601, batas maksimal rombongan (`1 <= pax <= 4`).
+- [x] **Frontend Interaktif Bergaya Gothic JRPG:**
+  - [`frontend/index.html`](file:///c:/Users/MY%20VICTUS/Desktop/AmbaTrain/frontend/index.html): Hero stasiun gothic, form pencarian rute, kartu hasil jadwal responsif.
+  - [`frontend/seats.html`](file:///c:/Users/MY%20VICTUS/Desktop/AmbaTrain/frontend/seats.html): Signature interactive carriage blueprint dengan kursi kristal bercahaya, lorong gerbong, tab gerbong, dan kalkulator harga party.
+- [x] **Automated Testing:** Skrip pengujian otomatis di [`scripts/test_schedules_seats.py`](file:///c:/Users/MY%20VICTUS/Desktop/AmbaTrain/scripts/test_schedules_seats.py).
 
 ### Fase 4: Mesin Pemesanan Inti & Anti Double-Booking (Minggu 4)
 - [ ] **Booking Engine Transaction (`POST /api/bookings`):**
@@ -426,18 +427,19 @@ Sesuai **PRD Bagian 15**, pembuktian keberhasilan anti double-booking dilakukan 
   - `GET /api/stations`: Daftar gerbang stasiun terurut.
 - [x] **Integration:** Seluruh route terkoneksi di [`src/main.cpp`](file:///c:/Users/MY%20VICTUS/Desktop/AmbaTrain/src/main.cpp) dan script uji otomatis [`scripts/test_auth.py`](file:///c:/Users/MY%20VICTUS/Desktop/AmbaTrain/scripts/test_auth.py).
 
-### Fase 3: Pencarian Jadwal & Visualisasi Denah Kursi (Minggu 3)
-- [ ] **Schedule Search API (`GET /api/schedules`):**
-  - Parameter query: `from` (origin ID), `to` (destination ID), `date` (YYYY-MM-DD), `pax` (jumlah penumpang).
-  - Menggabungkan data kereta, kelas (`sovereign`, `noble`, `yeoman`), jam berangkat, jam tiba, durasi perjalanan, dan harga.
-  - Menghitung **sisa kursi aktual real-time** dengan query agregasi yang mengurangi total kursi terhadap kursi aktif (`seat_active = TRUE` dan booking belum kedaluwarsa).
-- [ ] **Seat Layout API (`GET /api/schedules/:id/seats`):**
-  - Mengembalikan daftar seluruh gerbong (`carriages`) beserta nomor kursi (`seats`) untuk jadwal terkait.
-  - Memberikan status dinamis untuk setiap kursi:
-    - `available`: Kursi bebas dan dapat dipilih.
-    - `held`: Kursi sedang ditahan oleh user lain dalam jendela 15 menit.
-    - `booked`: Kursi sudah lunas (`status = 'paid'`).
-- [ ] **Frontend Interaktif:** Implementasi tampilan awal halaman pencarian rute dan denah kursi gerbong bergaya kristal JRPG.
+### Fase 3: Pencarian Jadwal & Visualisasi Denah Kursi (Minggu 3) [STATUS: SELESAI ✅]
+- [x] **Schedule Search API ([`ScheduleRepository.hpp`](file:///c:/Users/MY%20VICTUS/Desktop/AmbaTrain/src/repositories/ScheduleRepository.hpp) & [`ScheduleController.hpp`](file:///c:/Users/MY%20VICTUS/Desktop/AmbaTrain/src/controllers/ScheduleController.hpp)):**
+  - Parameter query: `from`, `to`, `date`, `pax`.
+  - Agregasi data kereta (Sovereign, Noble, Yeoman), jam berangkat, jam tiba, durasi, harga.
+  - Kalkulasi sisa kursi real-time (mengurangkan total kursi dengan kursi aktif pada booking `paid` dan `held` belum kedaluwarsa).
+- [x] **Seat Layout API ([`SeatRepository.hpp`](file:///c:/Users/MY%20VICTUS/Desktop/AmbaTrain/src/repositories/SeatRepository.hpp)):**
+  - `GET /api/schedules/:id/seats`: Mengelompokkan seluruh gerbong dan kursi dengan status dinamis (`available`, `held` 15 menit, `booked`).
+- [x] **Service Layer Validation ([`ScheduleService.hpp`](file:///c:/Users/MY%20VICTUS/Desktop/AmbaTrain/src/services/ScheduleService.hpp)):**
+  - Validasi jarak rute (`from != to`), format tanggal ISO8601, batas maksimal rombongan (`1 <= pax <= 4`).
+- [x] **Frontend Interaktif Bergaya Gothic JRPG:**
+  - [`frontend/index.html`](file:///c:/Users/MY%20VICTUS/Desktop/AmbaTrain/frontend/index.html): Hero stasiun gothic, form pencarian rute, kartu hasil jadwal responsif.
+  - [`frontend/seats.html`](file:///c:/Users/MY%20VICTUS/Desktop/AmbaTrain/frontend/seats.html): Signature interactive carriage blueprint dengan kursi kristal bercahaya, lorong gerbong, tab gerbong, dan kalkulator harga party.
+- [x] **Automated Testing:** Skrip pengujian otomatis di [`scripts/test_schedules_seats.py`](file:///c:/Users/MY%20VICTUS/Desktop/AmbaTrain/scripts/test_schedules_seats.py).
 
 ### Fase 4: Mesin Pemesanan Inti & Anti Double-Booking (Minggu 4)
 - [ ] **Booking Engine Transaction (`POST /api/bookings`):**

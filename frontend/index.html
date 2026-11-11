@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AmbaTrain — Swear Thy Oath, Embark Thy Journey</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@500;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        void: '#0A0A0F',
+                        obsidian: '#12121A',
+                        midnight: '#1C1530',
+                        crimson: { DEFAULT: '#8B1A2B', glow: '#C42B45' },
+                        gold: { DEFAULT: '#C9A24B', light: '#E8D08A' },
+                        crystal: '#5EC8E5',
+                        bone: '#EDE6D6',
+                        ash: '#9A94A6'
+                    },
+                    fontFamily: {
+                        display: ['"Cinzel Decorative"', 'serif'],
+                        heading: ['Cinzel', 'serif'],
+                        body: ['"Cormorant Garamond"', 'serif'],
+                        ui: ['Inter', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #0A0A0F; color: #EDE6D6; font-family: 'Inter', sans-serif; }
+        .gothic-border {
+            border: 1px solid #C9A24B;
+            box-shadow: 0 0 20px rgba(201, 162, 75, 0.15);
+        }
+        .gothic-glow-btn {
+            background: linear-gradient(135deg, #5C0F1B 0%, #8B1A2B 50%, #C42B45 100%);
+            border: 1px solid #C9A24B;
+            box-shadow: 0 0 15px rgba(196, 43, 69, 0.35);
+            transition: all 0.3s ease;
+        }
+        .gothic-glow-btn:hover {
+            box-shadow: 0 0 25px rgba(196, 43, 69, 0.65);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-crimson selection:text-white">
+
+    <!-- Navbar -->
+    <header class="border-b border-gold/30 bg-void/90 backdrop-blur-md sticky top-0 z-50 px-6 py-4">
+        <div class="max-w-6xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <span class="text-2xl text-crystal">✦</span>
+                <a href="index.html" class="font-display text-2xl tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-gold via-gold-light to-gold font-bold">AMBATRAIN</a>
+            </div>
+            <nav class="hidden md:flex items-center gap-8 text-sm uppercase tracking-widest font-heading text-ash">
+                <a href="#search" class="hover:text-gold transition">Cari Rute</a>
+                <a href="chronicle.html" class="hover:text-gold transition">Kronik</a>
+                <a href="#about" class="hover:text-gold transition">Tentang</a>
+            </nav>
+            <div class="flex items-center gap-4">
+                <a href="auth.html" class="border border-gold/60 text-gold text-xs uppercase tracking-wider px-4 py-2 rounded hover:bg-gold/10 transition font-heading">
+                    Enter the Realm
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <main class="flex-1 max-w-6xl mx-auto w-full px-6 py-12 flex flex-col items-center">
+        <div class="text-center max-w-3xl my-8">
+            <p class="font-body italic text-xl md:text-2xl text-gold-light mb-3">"All the world's a station, and all the men and women merely passengers."</p>
+            <h1 class="font-display text-4xl md:text-6xl text-bone tracking-wider uppercase mb-4">A Fantasy Based on Reality</h1>
+            <p class="text-ash text-base md:text-lg">Pilih gerbang asal, tentukan takdir tujuanmu. Rasakan kemegahan perjalanan bertaraf Sovereign, Noble, dan Yeoman.</p>
+        </div>
+
+        <!-- Search Card (Panel Pencarian ala JRPG) -->
+        <section id="search" class="w-full bg-obsidian/90 border border-gold/40 rounded-lg p-6 md:p-8 gothic-border my-6 relative overflow-hidden">
+            <div class="flex items-center justify-between border-b border-gold/20 pb-4 mb-6">
+                <h2 class="font-heading text-xl text-gold tracking-wider uppercase flex items-center gap-2">
+                    <span>⚔</span> Gerbang Perjalanan (Route Inscription)
+                </h2>
+                <span class="text-xs font-mono text-crystal">PostgreSQL Connected</span>
+            </div>
+
+            <form id="search-form" class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <!-- Stasiun Asal -->
+                <div>
+                    <label class="block text-xs uppercase tracking-widest text-ash font-heading mb-2">Gerbang Asal (Origin)</label>
+                    <select id="origin-select" class="w-full bg-void border border-gold/40 text-bone p-3 rounded focus:outline-none focus:border-crystal font-ui text-sm">
+                        <option value="">Pilih Gerbang...</option>
+                        <option value="1">Gambir (GMR) - Jakarta</option>
+                        <option value="2">Bandung (BD) - Bandung</option>
+                        <option value="6">Yogyakarta (YK) - Yogyakarta</option>
+                        <option value="8">Surabaya Gubeng (SGU) - Surabaya</option>
+                        <option value="7">Solo Balapan (SLO) - Surakarta</option>
+                    </select>
+                </div>
+
+                <!-- Stasiun Tujuan -->
+                <div>
+                    <label class="block text-xs uppercase tracking-widest text-ash font-heading mb-2">Gerbang Tujuan (Destination)</label>
+                    <select id="dest-select" class="w-full bg-void border border-gold/40 text-bone p-3 rounded focus:outline-none focus:border-crystal font-ui text-sm">
+                        <option value="">Pilih Gerbang...</option>
+                        <option value="8">Surabaya Gubeng (SGU) - Surabaya</option>
+                        <option value="6">Yogyakarta (YK) - Yogyakarta</option>
+                        <option value="1">Gambir (GMR) - Jakarta</option>
+                        <option value="7">Solo Balapan (SLO) - Surakarta</option>
+                        <option value="2">Bandung (BD) - Bandung</option>
+                    </select>
+                </div>
+
+                <!-- Tanggal Keberangkatan -->
+                <div>
+                    <label class="block text-xs uppercase tracking-widest text-ash font-heading mb-2">Tanggal Berangkat</label>
+                    <input type="date" id="date-input" class="w-full bg-void border border-gold/40 text-bone p-3 rounded focus:outline-none focus:border-crystal font-ui text-sm">
+                </div>
+
+                <!-- Jumlah Jiwa (Pax) -->
+                <div>
+                    <label class="block text-xs uppercase tracking-widest text-ash font-heading mb-2">Jumlah Penumpang</label>
+                    <select id="pax-select" class="w-full bg-void border border-gold/40 text-bone p-3 rounded focus:outline-none focus:border-crystal font-ui text-sm">
+                        <option value="1">1 Jiwa (Solo Traveler)</option>
+                        <option value="2">2 Jiwa (Duo Companions)</option>
+                        <option value="3">3 Jiwa (Party)</option>
+                        <option value="4">4 Jiwa (Royal Retinue)</option>
+                    </select>
+                </div>
+
+                <!-- Tombol Submit -->
+                <div class="md:col-span-4 flex justify-end mt-2">
+                    <button type="submit" class="gothic-glow-btn text-bone font-heading uppercase tracking-widest px-8 py-4 rounded text-sm font-bold flex items-center gap-3">
+                        <span>⚔</span> Mulai Perjalanan (Begin Journey)
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Hasil Pencarian Container -->
+        <section id="results-container" class="w-full my-8 hidden">
+            <h3 class="font-heading text-2xl text-gold mb-6 tracking-wider uppercase border-b border-gold/30 pb-3 flex items-center justify-between">
+                <span>Daftar Lokomotif yang Melintas</span>
+                <span id="results-count" class="text-xs text-ash font-mono">0 Jadwal Ditemukan</span>
+            </h3>
+            <div id="results-list" class="space-y-4"></div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-gold/20 bg-void py-8 text-center text-xs text-ash font-heading tracking-widest">
+        <p class="mb-2 text-gold">AMBATRAIN &copy; 2026 — GOTHIC SHAKESPEAREAN EXPEDITION</p>
+        <p class="font-body text-sm italic">"Better three hours too soon than a minute too late."</p>
+    </footer>
+
+    <script>
+        // Set tanggal default hari ini
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('date-input').value = today;
+
+        const API_BASE = 'http://localhost:8080/api';
+
+        document.getElementById('search-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const from = document.getElementById('origin-select').value;
+            const to = document.getElementById('dest-select').value;
+            const date = document.getElementById('date-input').value;
+            const pax = document.getElementById('pax-select').value;
+
+            if (!from || !to) {
+                alert('Silakan pilih gerbang asal dan tujuan!');
+                return;
+            }
+
+            const resultsContainer = document.getElementById('results-container');
+            const resultsList = document.getElementById('results-list');
+            const resultsCount = document.getElementById('results-count');
+
+            resultsList.innerHTML = '<div class="text-center py-12 text-gold font-body italic text-xl">Menyalakan tungku lokomotif... Menghubungi Supabase...</div>';
+            resultsContainer.classList.remove('hidden');
+
+            try {
+                const res = await fetch(`${API_BASE}/schedules?from=${from}&to=${to}&date=${date}&pax=${pax}`);
+                const data = await res.json();
+
+                if (!res.ok) {
+                    throw new Error(data.error?.message || 'Gagal mencari jadwal.');
+                }
+
+                resultsList.innerHTML = '';
+                resultsCount.innerText = `${data.length} Lokomotif Siap Meluncur`;
+
+                if (data.length === 0) {
+                    resultsList.innerHTML = `
+                        <div class="text-center py-12 border border-gold/20 bg-obsidian rounded p-8">
+                            <p class="font-heading text-xl text-ash">"The rails lie silent this day."</p>
+                            <p class="text-xs text-ash mt-2">Tiada jadwal kereta melintas pada rute dan tanggal yang dipilih.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                data.forEach(item => {
+                    const classBadgeColor = item.train_class === 'sovereign' ? 'text-amber-400 border-amber-400/40 bg-amber-950/20' :
+                                           item.train_class === 'noble' ? 'text-crystal border-crystal/40 bg-cyan-950/20' :
+                                           'text-emerald-400 border-emerald-400/40 bg-emerald-950/20';
+
+                    const card = document.createElement('div');
+                    card.className = 'bg-obsidian border border-gold/30 rounded p-6 flex flex-col md:flex-row items-center justify-between gap-6 hover:border-gold transition';
+                    card.innerHTML = `
+                        <div class="space-y-2">
+                            <div class="flex items-center gap-3">
+                                <span class="font-heading text-xl text-bone font-bold">${item.train_name}</span>
+                                <span class="text-xs font-mono uppercase px-2 py-0.5 border rounded ${classBadgeColor}">✦ ${item.train_class}</span>
+                            </div>
+                            <div class="text-sm text-ash flex items-center gap-4">
+                                <span>${item.origin_name} (${item.origin_code})</span>
+                                <span class="text-gold">──────▶</span>
+                                <span>${item.destination_name} (${item.destination_code})</span>
+                            </div>
+                            <div class="text-xs text-ash/80 font-mono">
+                                Keberangkatan: ${new Date(item.departure_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} 
+                                · Tiba: ${new Date(item.arrival_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                (${item.duration})
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-8 w-full md:w-auto justify-between md:justify-end">
+                            <div class="text-right">
+                                <div class="text-xs text-ash font-heading uppercase">Tribute (Harga)</div>
+                                <div class="text-2xl font-mono text-gold font-bold">Rp ${Number(item.price).toLocaleString('id-ID')}</div>
+                                <div class="text-xs text-crystal font-mono mt-1">${item.available_seats} Kursi Tersedia</div>
+                            </div>
+                            <a href="seats.html?schedule_id=${item.schedule_id}&pax=${pax}" class="gothic-glow-btn text-bone font-heading text-xs uppercase px-6 py-3 rounded tracking-wider font-bold">
+                                Pilih Kursi ✦
+                            </a>
+                        </div>
+                    `;
+                    resultsList.appendChild(card);
+                });
+
+            } catch (err) {
+                resultsList.innerHTML = `
+                    <div class="border border-crimson/50 bg-crimson/10 text-crimson-glow p-6 rounded text-center">
+                        <p class="font-heading font-bold">${err.message}</p>
+                        <p class="text-xs text-ash mt-1">Pastikan server C++ berjalan dan terkoneksi ke Supabase.</p>
+                    </div>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>

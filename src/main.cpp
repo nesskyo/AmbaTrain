@@ -14,13 +14,17 @@
 // Repositories
 #include "repositories/UserRepository.hpp"
 #include "repositories/StationRepository.hpp"
+#include "repositories/ScheduleRepository.hpp"
+#include "repositories/SeatRepository.hpp"
 
 // Services
 #include "services/AuthService.hpp"
+#include "services/ScheduleService.hpp"
 
 // Controllers
 #include "controllers/AuthController.hpp"
 #include "controllers/StationController.hpp"
+#include "controllers/ScheduleController.hpp"
 
 using namespace ambatrain;
 
@@ -45,7 +49,7 @@ int main() {
 ========================================================================
 )" << std::endl;
 
-    // 1. Inisialisasi Kriptografi (libsodium jika aktif)
+    // 1. Inisialisasi Kriptografi
     utils::CryptoUtils::init();
 
     // 2. Load Konfigurasi Lingkungan
@@ -58,7 +62,7 @@ int main() {
     if (!config.database_url.empty() && config.database_url.find("[YOUR-PASSWORD]") == std::string::npos) {
         try {
             std::cout << "[AmbaTrain] Connecting to Supabase PostgreSQL..." << std::endl;
-            db_pool = std::make_shared<config::DatabasePool>(config.database_url, 6);
+            db_pool = std::make_shared<config::DatabasePool>(config.database_url, 8);
         } catch (const std::exception& e) {
             std::cerr << "[AmbaTrain] Warning: Database connection initialization error: " << e.what() << std::endl;
         }
@@ -67,13 +71,17 @@ int main() {
         std::cout << "[AmbaTrain] Running in standalone development mode." << std::endl;
     }
 
-    // 4. Inisialisasi Layer Repositories & Services
+    // 4. Inisialisasi Repositories
     auto user_repo = std::make_shared<repositories::UserRepository>(db_pool);
     auto station_repo = std::make_shared<repositories::StationRepository>(db_pool);
+    auto schedule_repo = std::make_shared<repositories::ScheduleRepository>(db_pool);
+    auto seat_repo = std::make_shared<repositories::SeatRepository>(db_pool);
 
+    // 5. Inisialisasi Services
     auto auth_service = std::make_shared<services::AuthService>(user_repo, config);
+    auto schedule_service = std::make_shared<services::ScheduleService>(schedule_repo, seat_repo);
 
-    // 5. Inisialisasi Crow Web Application
+    // 6. Inisialisasi Crow Web Application
     using AppType = crow::App<middleware::CorsMiddleware>;
     AppType app;
 
@@ -83,13 +91,15 @@ int main() {
         nlohmann::json resp = {
             {"realm", "AmbaTrain"},
             {"tagline", "All the world's a station, and all the men and women merely passengers."},
-            {"documentation", "/docs"},
+            {"phase", "Phase 3 Complete (Schedules & Seat Layout)"},
             {"endpoints", {
                 {"healthcheck", "/api/health"},
                 {"register", "POST /api/auth/register"},
                 {"login", "POST /api/auth/login"},
                 {"profile", "GET /api/auth/me"},
-                {"stations", "GET /api/stations"}
+                {"stations", "GET /api/stations"},
+                {"schedules", "GET /api/schedules?from=1&to=8&date=YYYY-MM-DD&pax=2"},
+                {"seat_map", "GET /api/schedules/:id/seats"}
             }}
         };
         return utils::ResponseUtils::success(resp);
@@ -137,7 +147,6 @@ int main() {
             {"status", is_healthy ? "healthy" : (db_pool ? "degraded" : "standalone")},
             {"service", "AmbaTrain C++ REST Engine"},
             {"version", "1.0.0"},
-            {"phase", "Phase 2 Complete (Auth & Master Data)"},
             {"database", db_status},
             {"config", {
                 {"port", config.port},
@@ -147,18 +156,21 @@ int main() {
             {"timestamp", get_iso_timestamp()}
         };
 
-        return utils::ResponseUtils::success(response, is_healthy ? 200 : 200);
+        return utils::ResponseUtils::success(response, 200);
     });
 
-    // 6. Daftarkan Controller Routes
+    // 7. Daftarkan Controller Routes
     controllers::AuthController<AppType> auth_controller(auth_service, config);
     auth_controller.register_routes(app);
 
     controllers::StationController<AppType> station_controller(station_repo);
     station_controller.register_routes(app);
 
-    // 7. Start Crow Server
-    std::cout << "[AmbaTrain] Routes registered successfully." << std::endl;
+    controllers::ScheduleController<AppType> schedule_controller(schedule_service);
+    schedule_controller.register_routes(app);
+
+    // 8. Start Crow Server
+    std::cout << "[AmbaTrain] Phase 1, 2 & 3 routes registered." << std::endl;
     std::cout << "[AmbaTrain] Ready to embark on port " << config.port << "..." << std::endl;
     app.port(config.port).multithreaded().run();
 
