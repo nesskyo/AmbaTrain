@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sumpah Penumpang & Tribute — AmbaTrain</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@500;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        void: '#0A0A0F',
+                        obsidian: '#12121A',
+                        midnight: '#1C1530',
+                        crimson: { DEFAULT: '#8B1A2B', glow: '#C42B45' },
+                        gold: { DEFAULT: '#C9A24B', light: '#E8D08A' },
+                        crystal: '#5EC8E5',
+                        bone: '#EDE6D6',
+                        ash: '#9A94A6'
+                    },
+                    fontFamily: {
+                        display: ['"Cinzel Decorative"', 'serif'],
+                        heading: ['Cinzel', 'serif'],
+                        body: ['"Cormorant Garamond"', 'serif'],
+                        ui: ['Inter', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #0A0A0F; color: #EDE6D6; font-family: 'Inter', sans-serif; }
+        .gothic-border { border: 1px solid #C9A24B; box-shadow: 0 0 20px rgba(201, 162, 75, 0.15); }
+        .gothic-glow-btn {
+            background: linear-gradient(135deg, #5C0F1B 0%, #8B1A2B 50%, #C42B45 100%);
+            border: 1px solid #C9A24B;
+            box-shadow: 0 0 15px rgba(196, 43, 69, 0.35);
+            transition: all 0.3s ease;
+        }
+        .gothic-glow-btn:hover { box-shadow: 0 0 25px rgba(196, 43, 69, 0.65); transform: translateY(-2px); }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-crimson selection:text-white">
+
+    <!-- Header -->
+    <header class="border-b border-gold/30 bg-void/90 backdrop-blur-md sticky top-0 z-50 px-6 py-4">
+        <div class="max-w-4xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <a href="seats.html" class="text-gold hover:text-crystal font-mono text-sm">◀ Ganti Kursi</a>
+                <span class="text-ash">|</span>
+                <span class="font-display text-xl text-gold">AMBATRAIN</span>
+            </div>
+            <!-- Countdown Timer -->
+            <div class="flex items-center gap-2 border border-amber-500/50 bg-amber-950/30 px-3 py-1.5 rounded">
+                <span class="text-amber-400">⏳</span>
+                <span id="countdown" class="font-mono text-xs text-amber-400 font-bold">15:00</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 max-w-4xl mx-auto w-full px-6 py-8">
+        
+        <!-- Stepper / Quest Progress -->
+        <div class="flex items-center justify-between text-xs font-heading uppercase tracking-widest text-ash border-b border-gold/20 pb-4 mb-8">
+            <span class="text-gold">1. Pilih Rute ✔</span>
+            <span class="text-gold">2. Pilih Kursi ✔</span>
+            <span class="text-crystal font-bold">3. Data Diri & Tribute ✦</span>
+            <span class="text-ash/50">4. Royal Pass (Sealed)</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+            <!-- Passenger Forms (2 Cols) -->
+            <div class="md:col-span-2 space-y-6">
+                <div class="bg-obsidian border border-gold/40 rounded-lg p-6 gothic-border">
+                    <h2 class="font-heading text-lg text-gold uppercase tracking-wider mb-2">Sumpah Data Penumpang</h2>
+                    <p class="text-xs text-ash mb-6">Pastikan nama dan nomor identitas (NIK) sesuai dengan kartu identitas asli pengelana.</p>
+
+                    <form id="passenger-form" class="space-y-6">
+                        <div id="passenger-inputs-container" class="space-y-6"></div>
+
+                        <div class="pt-4 border-t border-gold/20">
+                            <h3 class="font-heading text-sm text-gold uppercase tracking-wider mb-3">Metode Tribute (Simulasi)</h3>
+                            <div class="grid grid-cols-2 gap-3 text-xs font-ui">
+                                <label class="border border-crystal bg-crystal/10 p-3 rounded flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="payment_method" value="tribute_crystal" checked class="accent-crystal">
+                                    <span>✦ Tribute Kristal (Instan)</span>
+                                </label>
+                                <label class="border border-gold/30 bg-void p-3 rounded flex items-center gap-2 cursor-pointer hover:border-gold">
+                                    <input type="radio" name="payment_method" value="qris" class="accent-gold">
+                                    <span>QRIS Kerajaan</span>
+                                </label>
+                                <label class="border border-gold/30 bg-void p-3 rounded flex items-center gap-2 cursor-pointer hover:border-gold">
+                                    <input type="radio" name="payment_method" value="bank_transfer" class="accent-gold">
+                                    <span>Transfer Virtual Account</span>
+                                </label>
+                                <label class="border border-gold/30 bg-void p-3 rounded flex items-center gap-2 cursor-pointer hover:border-gold">
+                                    <input type="radio" name="payment_method" value="credit_card" class="accent-gold">
+                                    <span>Kartu Bangsawan</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <button type="submit" id="btn-submit-booking" class="w-full gothic-glow-btn text-bone font-heading uppercase text-sm py-4 rounded tracking-widest font-bold mt-6">
+                            Segel Takdir & Kunci Kursi ✦
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Booking Summary (1 Col) -->
+            <div class="bg-obsidian border border-gold/40 rounded-lg p-6 gothic-border h-fit space-y-4">
+                <h3 class="font-heading text-base text-gold uppercase tracking-wider border-b border-gold/20 pb-3">Ringkasan Pesanan</h3>
+                
+                <div class="space-y-3 text-sm">
+                    <div>
+                        <span class="text-xs text-ash uppercase font-heading block">Total Kursi</span>
+                        <div id="seats-list" class="flex flex-wrap gap-1.5 mt-1 font-mono text-xs text-crystal"></div>
+                    </div>
+                    <div>
+                        <span class="text-xs text-ash uppercase font-heading block">Total Tribute</span>
+                        <div id="summary-price" class="text-xl font-mono text-gold font-bold mt-1">Rp 0</div>
+                    </div>
+                </div>
+
+                <div class="border-t border-gold/20 pt-4 text-xs text-ash italic">
+                    "Kursi akan ditahan selama 15 menit. Apabila tribute tidak diselesaikan, takdirmu akan kembali ke kabut."
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+        const rawData = sessionStorage.getItem('ambatrain_booking');
+        
+        if (!rawData) {
+            alert('Tiada data kursi terpilih. Silakan mulai pencarian rute terlebih dahulu.');
+            window.location.href = 'index.html';
+        }
+
+        const bookingData = JSON.parse(rawData);
+        const container = document.getElementById('passenger-inputs-container');
+        const seatsBadge = document.getElementById('seats-list');
+        const priceLabel = document.getElementById('summary-price');
+
+        priceLabel.innerText = `Rp ${bookingData.total_price.toLocaleString('id-ID')}`;
+
+        bookingData.seats.forEach((seat, idx) => {
+            // Badge
+            const b = document.createElement('span');
+            b.className = 'px-2 py-0.5 border border-crystal bg-crystal/20 rounded';
+            b.innerText = `G${seat.carriage_number}-${seat.seat_number}`;
+            seatsBadge.appendChild(b);
+
+            // Form Fields
+            const field = document.createElement('div');
+            field.className = 'border border-gold/20 bg-void p-4 rounded space-y-3';
+            field.innerHTML = `
+                <div class="flex justify-between items-center text-xs font-heading text-gold uppercase">
+                    <span>Musafir #${idx + 1}</span>
+                    <span class="font-mono text-crystal">Kursi: Gerbong ${seat.carriage_number} (${seat.seat_number})</span>
+                </div>
+                <div>
+                    <label class="block text-xs uppercase text-ash font-heading mb-1">Nama Lengkap</label>
+                    <input type="text" required class="pax-name w-full bg-obsidian border border-gold/30 text-bone p-2.5 rounded text-sm focus:border-crystal focus:outline-none" placeholder="Contoh: Lord Noctis Lucis">
+                </div>
+                <div>
+                    <label class="block text-xs uppercase text-ash font-heading mb-1">Nomor Identitas (NIK)</label>
+                    <input type="text" required class="pax-nik w-full bg-obsidian border border-gold/30 text-bone p-2.5 rounded text-sm focus:border-crystal focus:outline-none" placeholder="16 Digit NIK KTP">
+                </div>
+            `;
+            container.appendChild(field);
+        });
+
+        // 15-Minute Countdown Timer
+        let secondsLeft = 15 * 60;
+        const timerElem = document.getElementById('countdown');
+        const timerInterval = setInterval(() => {
+            secondsLeft--;
+            const mins = Math.floor(secondsLeft / 60);
+            const secs = secondsLeft % 60;
+            timerElem.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            if (secondsLeft <= 0) {
+                clearInterval(timerInterval);
+                alert('Waktu penahanan 15 menit telah habis. Kursimu kembali ke kabut.');
+                window.location.href = 'index.html';
+            }
+        }, 1000);
+
+        // Submit Booking
+        document.getElementById('passenger-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Cek JWT Token
+            let token = localStorage.getItem('ambatrain_token');
+            if (!token) {
+                // Auto guest login / prompt masuk
+                const email = prompt('Masukkan email akun AmbaTrain untuk mengikat tiket:', 'traveler@ambatrain.com');
+                if (!email) return;
+
+                // Coba login otomatis
+                try {
+                    const loginRes = await fetch(`${API_BASE}/auth/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: email, password: 'Password123!' })
+                    });
+                    const loginData = await loginRes.json();
+                    if (loginRes.ok) {
+                        token = loginData.token;
+                        localStorage.setItem('ambatrain_token', token);
+                    } else {
+                        alert('Gagal login: ' + (loginData.error?.message || 'Password salah.'));
+                        return;
+                    }
+                } catch (err) {
+                    alert('Gagal menghubungi server auth: ' + err.message);
+                    return;
+                }
+            }
+
+            const names = document.querySelectorAll('.pax-name');
+            const niks = document.querySelectorAll('.pax-nik');
+
+            const passengersPayload = [];
+            for (let i = 0; i < bookingData.seats.length; i++) {
+                passengersPayload.push({
+                    name: names[i].value.trim(),
+                    id_number: niks[i].value.trim(),
+                    seat_id: bookingData.seats[i].seat_id
+                });
+            }
+
+            const payload = {
+                schedule_id: parseInt(bookingData.schedule_id, 10),
+                passengers: passengersPayload
+            };
+
+            const submitBtn = document.getElementById('btn-submit-booking');
+            submitBtn.disabled = true;
+            submitBtn.innerText = 'Mengunci Kursi dengan Transaksi C++...';
+
+            try {
+                const res = await fetch(`${API_BASE}/bookings`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+
+                if (res.status === 201) {
+                    // Berhasil Hold Kursi!
+                    sessionStorage.setItem('ambatrain_sealed', JSON.stringify(data.booking));
+                    alert(`Takdirmu telah tersegel! Kode Sigil: ${data.booking.code}. Kursi berhasil dikunci.`);
+                    window.location.href = `ticket.html?code=${data.booking.code}`;
+                } else if (res.status === 409) {
+                    // Terjadi Anti Double-Booking Collision!
+                    alert(`⚠️ ${data.error?.message || 'Kursi telah direbut takdir lain.'}\nSilakan pilih kursi lain pada gerbong.`);
+                    window.location.href = `seats.html?schedule_id=${bookingData.schedule_id}`;
+                } else {
+                    alert('Gagal membuat pesanan: ' + (data.error?.message || 'Kesalahan server'));
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = 'Segel Takdir & Kunci Kursi ✦';
+                }
+            } catch (err) {
+                alert('Kesalahan koneksi ke backend C++: ' + err.message);
+                submitBtn.disabled = false;
+                submitBtn.innerText = 'Segel Takdir & Kunci Kursi ✦';
+            }
+        });
+    </script>
+</body>
+</html>

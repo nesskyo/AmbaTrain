@@ -289,33 +289,37 @@ HOLD_MINUTES=15
   - [`frontend/seats.html`](file:///c:/Users/MY%20VICTUS/Desktop/AmbaTrain/frontend/seats.html): Signature interactive carriage blueprint dengan kursi kristal bercahaya, lorong gerbong, tab gerbong, dan kalkulator harga party.
 - [x] **Automated Testing:** Skrip pengujian otomatis di [`scripts/test_schedules_seats.py`](file:///c:/Users/MY%20VICTUS/Desktop/AmbaTrain/scripts/test_schedules_seats.py).
 
-### Fase 4: Mesin Pemesanan Inti & Anti Double-Booking (Minggu 4)
-- [ ] **Booking Engine Transaction (`POST /api/bookings`):**
-  - Menerima payload: `schedule_id` dan array `passengers` (`name`, `id_number`, `seat_id`).
-  - Membuka transaksi database terisolasi: `BEGIN;`
-  - Mengeksekusi `SELECT id FROM seats WHERE id IN (...) FOR UPDATE;` untuk mengunci baris kursi dari balapan transaksi konkuren.
-  - Memvalidasi apakah kursi masih kosong pada jadwal tersebut. Jika sudah diambil, lakukan `ROLLBACK;` dan kembalikan status `409 Conflict`.
-  - Membuat baris baru pada tabel `bookings` dengan `status = 'held'`, kode unik Sigil (`AMB-XXXXXX`), dan `expires_at = NOW() + INTERVAL '15 minutes'`.
-  - Memasukkan seluruh data penumpang ke `booking_passengers` dengan `seat_active = TRUE`.
-  - Menangani error jika Partial Unique Index `uq_active_seat_per_schedule` dilanggar secara atomik.
-  - `COMMIT;` dan mengembalikan respons `201 Created` beserta Sigil dan timer.
-- [ ] **Background Expiry Worker (`ExpiryWorker.hpp`):**
-  - Menjalankan background thread `std::thread` di C++ yang setiap 60 detik memanggil `SELECT public.expire_held_bookings();`.
-  - Mengubah booking kedaluwarsa menjadi `expired`, memicu trigger database yang otomatis melepaskan kursi (`seat_active = FALSE`).
+### Fase 4: Mesin Pemesanan Inti & Anti Double-Booking (Minggu 4) [STATUS: SELESAI ✅]
+- [x] **Booking Engine Transaction ([`BookingRepository.hpp`](file:///c:/Users/MY%20VICTUS/Desktop/AmbaTrain/src/repositories/BookingRepository.hpp) & [`BookingController.hpp`](file:///c:/Users/MY%20VICTUS/Desktop/AmbaTrain/src/controllers/BookingController.hpp)):**
+  - Menerima payload: `schedule_id` dan daftar `passengers` (`name`, `id_number`, `seat_id`).
+  - Transaksi terisolasi: `BEGIN;`
+  - Pessimistic Row-Level Locking: `SELECT id FROM public.seats WHERE id IN (...) FOR UPDATE;` untuk mencegah akses konkurensi paralel.
+  - Pengecekan aktif: Memastikan kursi belum di-hold (`expires_at > NOW()`) atau lunas (`status = 'paid'`).
+  - Sigil Generator: Pembuatan kode booking acak tematik unik (`AMB-XXXXXX`).
+  - Insert `bookings` (status `'held'`, kedaluwarsa 15 menit) & insert `booking_passengers` (`seat_active = TRUE`).
+  - Menangkap pelanggaran constraint unik `uq_active_seat_per_schedule` dan mengembalikan HTTP `409 Conflict`.
+- [x] **Background Expiry Worker ([`ExpiryWorker.hpp`](file:///c:/Users/MY%20VICTUS/Desktop/AmbaTrain/src/services/ExpiryWorker.hpp)):**
+  - Menjalankan background worker thread di C++ setiap 60 detik memanggil `SELECT public.expire_held_bookings();`.
+  - Mengubah status booking kedaluwarsa menjadi `expired`, yang secara reaktif memicu trigger database untuk melepas kunci kursi (`seat_active = FALSE`).
+- [x] **Frontend Sumpah Data Diri & Tribute ([`frontend/checkout.html`](file:///c:/Users/MY%20VICTUS/Desktop/AmbaTrain/frontend/checkout.html)):**
+  - Form data nama & NIK per musafir, jam pasir countdown 15 menit, opsi pembayaran, dan penanganan HTTP 409 secara visual.
+- [x] **Automated Testing & Concurrency Harness:**
+  - [`scripts/test_booking_hold.py`](file:///c:/Users/MY%20VICTUS/Desktop/AmbaTrain/scripts/test_booking_hold.py): Verifikasi respon 201 dan 409 pada kursi yang sama.
+  - [`scripts/test_concurrency.py`](file:///c:/Users/MY%20VICTUS/Desktop/AmbaTrain/scripts/test_concurrency.py): Simulasi 50 request paralel.
 
-### Fase 5: Pembayaran Simulasi, Royal Pass & Kronik (Minggu 5)
-- [ ] **Payment API (`POST /api/bookings/:id/pay`):**
-  - Validasi bahwa pemesanan masih berstatus `held` dan `expires_at > NOW()`.
-  - Memperbarui status booking menjadi `paid` (Sealed).
-  - Menyimpan data transaksi ke tabel `payments` dengan metode yang dipilih (`tribute_crystal`, `qris`, `bank_transfer`).
-- [ ] **Cancellation API (`POST /api/bookings/:id/cancel`):**
-  - Mengubah status booking menjadi `cancelled` (Forsaken).
-  - Database trigger otomatis membebaskan kursi seketika.
-- [ ] **Royal Pass E-Ticket API (`GET /api/bookings/:code`):**
-  - Menampilkan detail lengkap tiket (Sigil code, kereta, rute, waktu, daftar penumpang & nomor kursi, status segel, dan data representasi QR code).
-- [ ] **Kronik Perjalanan (`GET /api/bookings`):**
-  - Mengambil seluruh riwayat pemesanan milik user yang sedang terotentikasi, diurutkan dari yang terbaru.
-- [ ] **Frontend Polishing:** Desain tampilan gulungan perkamen Royal Pass, segel lilin crimson, dan quest log riwayat perjalanan.
+### Fase 5: Pembayaran Simulasi, Royal Pass & Kronik (Minggu 5) [STATUS: SELESAI ✅]
+- [x] **Payment API Mock Simulation ([`PaymentRepository.hpp`](file:///c:/Users/MY%20VICTUS/Desktop/AmbaTrain/src/repositories/PaymentRepository.hpp) & [`PaymentController.hpp`](file:///c:/Users/MY%20VICTUS/Desktop/AmbaTrain/src/controllers/PaymentController.hpp)):**
+  - `POST /api/bookings/:id/pay`: Mengubah status booking menjadi `paid` (Sealed) dalam 1-klik simulasi, menyimpan record ke tabel `payments`.
+- [x] **Cancellation API:**
+  - `POST /api/bookings/:id/cancel`: Mengubah status menjadi `cancelled` (Forsaken), secara otomatis memicu database trigger untuk membebaskan kursi.
+- [x] **Royal Pass E-Ticket API:**
+  - `GET /api/bookings/:code`: Mengembalikan detail lengkap tiket (Sigil, kereta, stasiun asal & tujuan, jam berangkat/tiba, daftar penumpang dan kursi, metode pembayaran, QR representation).
+- [x] **Kronik Riwayat Perjalanan:**
+  - `GET /api/bookings`: Mengambil seluruh riwayat pemesanan pengguna aktif diurutkan dari yang terbaru.
+- [x] **Frontend Gothic Shakespearean:**
+  - [`frontend/ticket.html`](file:///c:/Users/MY%20VICTUS/Desktop/AmbaTrain/frontend/ticket.html): Tampilan gulungan perkamen Royal Pass, banner status, tombol simulasi bayar 1-klik, QR code mock, dan tombol cetak PDF.
+  - [`frontend/chronicle.html`](file:///c:/Users/MY%20VICTUS/Desktop/AmbaTrain/frontend/chronicle.html): Buku sejarah quest log vertikal dengan badge status (*Sealed, Awaiting Tribute, Forsaken, Faded to Dust*).
+- [x] **Automated Testing:** Skrip pengujian otomatis di [`scripts/test_payment_ticket.py`](file:///c:/Users/MY%20VICTUS/Desktop/AmbaTrain/scripts/test_payment_ticket.py).
 
 ### Fase 6: Panel Admin, Pengujian Konkurensi & Finalisasi (Minggu 6)
 - [ ] **The Conductor's Chamber (Admin Panel):**
@@ -441,33 +445,37 @@ Sesuai **PRD Bagian 15**, pembuktian keberhasilan anti double-booking dilakukan 
   - [`frontend/seats.html`](file:///c:/Users/MY%20VICTUS/Desktop/AmbaTrain/frontend/seats.html): Signature interactive carriage blueprint dengan kursi kristal bercahaya, lorong gerbong, tab gerbong, dan kalkulator harga party.
 - [x] **Automated Testing:** Skrip pengujian otomatis di [`scripts/test_schedules_seats.py`](file:///c:/Users/MY%20VICTUS/Desktop/AmbaTrain/scripts/test_schedules_seats.py).
 
-### Fase 4: Mesin Pemesanan Inti & Anti Double-Booking (Minggu 4)
-- [ ] **Booking Engine Transaction (`POST /api/bookings`):**
-  - Menerima payload: `schedule_id` dan array `passengers` (`name`, `id_number`, `seat_id`).
-  - Membuka transaksi database terisolasi: `BEGIN;`
-  - Mengeksekusi `SELECT id FROM seats WHERE id IN (...) FOR UPDATE;` untuk mengunci baris kursi dari balapan transaksi konkuren.
-  - Memvalidasi apakah kursi masih kosong pada jadwal tersebut. Jika sudah diambil, lakukan `ROLLBACK;` dan kembalikan status `409 Conflict`.
-  - Membuat baris baru pada tabel `bookings` dengan `status = 'held'`, kode unik Sigil (`AMB-XXXXXX`), dan `expires_at = NOW() + INTERVAL '15 minutes'`.
-  - Memasukkan seluruh data penumpang ke `booking_passengers` dengan `seat_active = TRUE`.
-  - Menangani error jika Partial Unique Index `uq_active_seat_per_schedule` dilanggar secara atomik.
-  - `COMMIT;` dan mengembalikan respons `201 Created` beserta Sigil dan timer.
-- [ ] **Background Expiry Worker (`ExpiryWorker.hpp`):**
-  - Menjalankan background thread `std::thread` di C++ yang setiap 60 detik memanggil `SELECT public.expire_held_bookings();`.
-  - Mengubah booking kedaluwarsa menjadi `expired`, memicu trigger database yang otomatis melepaskan kursi (`seat_active = FALSE`).
+### Fase 4: Mesin Pemesanan Inti & Anti Double-Booking (Minggu 4) [STATUS: SELESAI ✅]
+- [x] **Booking Engine Transaction ([`BookingRepository.hpp`](file:///c:/Users/MY%20VICTUS/Desktop/AmbaTrain/src/repositories/BookingRepository.hpp) & [`BookingController.hpp`](file:///c:/Users/MY%20VICTUS/Desktop/AmbaTrain/src/controllers/BookingController.hpp)):**
+  - Menerima payload: `schedule_id` dan daftar `passengers` (`name`, `id_number`, `seat_id`).
+  - Transaksi terisolasi: `BEGIN;`
+  - Pessimistic Row-Level Locking: `SELECT id FROM public.seats WHERE id IN (...) FOR UPDATE;` untuk mencegah akses konkurensi paralel.
+  - Pengecekan aktif: Memastikan kursi belum di-hold (`expires_at > NOW()`) atau lunas (`status = 'paid'`).
+  - Sigil Generator: Pembuatan kode booking acak tematik unik (`AMB-XXXXXX`).
+  - Insert `bookings` (status `'held'`, kedaluwarsa 15 menit) & insert `booking_passengers` (`seat_active = TRUE`).
+  - Menangkap pelanggaran constraint unik `uq_active_seat_per_schedule` dan mengembalikan HTTP `409 Conflict`.
+- [x] **Background Expiry Worker ([`ExpiryWorker.hpp`](file:///c:/Users/MY%20VICTUS/Desktop/AmbaTrain/src/services/ExpiryWorker.hpp)):**
+  - Menjalankan background worker thread di C++ setiap 60 detik memanggil `SELECT public.expire_held_bookings();`.
+  - Mengubah status booking kedaluwarsa menjadi `expired`, yang secara reaktif memicu trigger database untuk melepas kunci kursi (`seat_active = FALSE`).
+- [x] **Frontend Sumpah Data Diri & Tribute ([`frontend/checkout.html`](file:///c:/Users/MY%20VICTUS/Desktop/AmbaTrain/frontend/checkout.html)):**
+  - Form data nama & NIK per musafir, jam pasir countdown 15 menit, opsi pembayaran, dan penanganan HTTP 409 secara visual.
+- [x] **Automated Testing & Concurrency Harness:**
+  - [`scripts/test_booking_hold.py`](file:///c:/Users/MY%20VICTUS/Desktop/AmbaTrain/scripts/test_booking_hold.py): Verifikasi respon 201 dan 409 pada kursi yang sama.
+  - [`scripts/test_concurrency.py`](file:///c:/Users/MY%20VICTUS/Desktop/AmbaTrain/scripts/test_concurrency.py): Simulasi 50 request paralel.
 
-### Fase 5: Pembayaran Simulasi, Royal Pass & Kronik (Minggu 5)
-- [ ] **Payment API (`POST /api/bookings/:id/pay`):**
-  - Validasi bahwa pemesanan masih berstatus `held` dan `expires_at > NOW()`.
-  - Memperbarui status booking menjadi `paid` (Sealed).
-  - Menyimpan data transaksi ke tabel `payments` dengan metode yang dipilih (`tribute_crystal`, `qris`, `bank_transfer`).
-- [ ] **Cancellation API (`POST /api/bookings/:id/cancel`):**
-  - Mengubah status booking menjadi `cancelled` (Forsaken).
-  - Database trigger otomatis membebaskan kursi seketika.
-- [ ] **Royal Pass E-Ticket API (`GET /api/bookings/:code`):**
-  - Menampilkan detail lengkap tiket (Sigil code, kereta, rute, waktu, daftar penumpang & nomor kursi, status segel, dan data representasi QR code).
-- [ ] **Kronik Perjalanan (`GET /api/bookings`):**
-  - Mengambil seluruh riwayat pemesanan milik user yang sedang terotentikasi, diurutkan dari yang terbaru.
-- [ ] **Frontend Polishing:** Desain tampilan gulungan perkamen Royal Pass, segel lilin crimson, dan quest log riwayat perjalanan.
+### Fase 5: Pembayaran Simulasi, Royal Pass & Kronik (Minggu 5) [STATUS: SELESAI ✅]
+- [x] **Payment API Mock Simulation ([`PaymentRepository.hpp`](file:///c:/Users/MY%20VICTUS/Desktop/AmbaTrain/src/repositories/PaymentRepository.hpp) & [`PaymentController.hpp`](file:///c:/Users/MY%20VICTUS/Desktop/AmbaTrain/src/controllers/PaymentController.hpp)):**
+  - `POST /api/bookings/:id/pay`: Mengubah status booking menjadi `paid` (Sealed) dalam 1-klik simulasi, menyimpan record ke tabel `payments`.
+- [x] **Cancellation API:**
+  - `POST /api/bookings/:id/cancel`: Mengubah status menjadi `cancelled` (Forsaken), secara otomatis memicu database trigger untuk membebaskan kursi.
+- [x] **Royal Pass E-Ticket API:**
+  - `GET /api/bookings/:code`: Mengembalikan detail lengkap tiket (Sigil, kereta, stasiun asal & tujuan, jam berangkat/tiba, daftar penumpang dan kursi, metode pembayaran, QR representation).
+- [x] **Kronik Riwayat Perjalanan:**
+  - `GET /api/bookings`: Mengambil seluruh riwayat pemesanan pengguna aktif diurutkan dari yang terbaru.
+- [x] **Frontend Gothic Shakespearean:**
+  - [`frontend/ticket.html`](file:///c:/Users/MY%20VICTUS/Desktop/AmbaTrain/frontend/ticket.html): Tampilan gulungan perkamen Royal Pass, banner status, tombol simulasi bayar 1-klik, QR code mock, dan tombol cetak PDF.
+  - [`frontend/chronicle.html`](file:///c:/Users/MY%20VICTUS/Desktop/AmbaTrain/frontend/chronicle.html): Buku sejarah quest log vertikal dengan badge status (*Sealed, Awaiting Tribute, Forsaken, Faded to Dust*).
+- [x] **Automated Testing:** Skrip pengujian otomatis di [`scripts/test_payment_ticket.py`](file:///c:/Users/MY%20VICTUS/Desktop/AmbaTrain/scripts/test_payment_ticket.py).
 
 ### Fase 6: Panel Admin, Pengujian Konkurensi & Finalisasi (Minggu 6)
 - [ ] **The Conductor's Chamber (Admin Panel):**

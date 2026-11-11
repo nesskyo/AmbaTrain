@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Royal Pass (E-Ticket) — AmbaTrain</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@500;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        void: '#0A0A0F',
+                        obsidian: '#12121A',
+                        midnight: '#1C1530',
+                        crimson: { DEFAULT: '#8B1A2B', glow: '#C42B45' },
+                        gold: { DEFAULT: '#C9A24B', light: '#E8D08A' },
+                        crystal: '#5EC8E5',
+                        bone: '#EDE6D6',
+                        ash: '#9A94A6'
+                    },
+                    fontFamily: {
+                        display: ['"Cinzel Decorative"', 'serif'],
+                        heading: ['Cinzel', 'serif'],
+                        body: ['"Cormorant Garamond"', 'serif'],
+                        ui: ['Inter', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #0A0A0F; color: #EDE6D6; font-family: 'Inter', sans-serif; }
+        .gothic-border { border: 1px solid #C9A24B; box-shadow: 0 0 25px rgba(201, 162, 75, 0.18); }
+        .gothic-glow-btn {
+            background: linear-gradient(135deg, #5C0F1B 0%, #8B1A2B 50%, #C42B45 100%);
+            border: 1px solid #C9A24B;
+            box-shadow: 0 0 15px rgba(196, 43, 69, 0.35);
+            transition: all 0.3s ease;
+        }
+        .gothic-glow-btn:hover { box-shadow: 0 0 25px rgba(196, 43, 69, 0.65); transform: translateY(-2px); }
+        .wax-seal {
+            background: radial-gradient(circle, #C42B45 0%, #8B1A2B 70%, #5C0F1B 100%);
+            box-shadow: 0 0 20px rgba(196, 43, 69, 0.5);
+            border: 2px solid #E8D08A;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-crimson selection:text-white">
+
+    <!-- Header -->
+    <header class="border-b border-gold/30 bg-void/90 backdrop-blur-md sticky top-0 z-50 px-6 py-4">
+        <div class="max-w-4xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <a href="chronicle.html" class="text-gold hover:text-crystal font-mono text-sm">◀ Ke Kronik</a>
+                <span class="text-ash">|</span>
+                <span class="font-display text-xl text-gold">AMBATRAIN</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="window.print()" class="text-xs uppercase font-heading text-ash hover:text-gold border border-gold/30 px-3 py-1.5 rounded transition">
+                    Cetak Pass (PDF)
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 max-w-3xl mx-auto w-full px-6 py-10 flex flex-col items-center">
+        
+        <div id="loading" class="text-center py-20 text-gold font-body italic text-2xl">
+            Membuka segel gulungan Royal Pass...
+        </div>
+
+        <!-- Royal Pass Ticket Card -->
+        <div id="ticket-card" class="w-full bg-obsidian border-2 border-gold rounded-lg p-8 gothic-border relative overflow-hidden hidden">
+            
+            <!-- Watermark / Background Texture -->
+            <div class="absolute -right-16 -top-16 opacity-5 pointer-events-none text-[180px] font-display text-gold">
+                ✦
+            </div>
+
+            <!-- Top Header Ticket -->
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b-2 border-gold/30 pb-6 mb-6 gap-4">
+                <div>
+                    <span class="text-xs font-heading uppercase text-gold tracking-widest block mb-1">Scroll of Royal Passage</span>
+                    <h1 class="font-display text-3xl text-bone tracking-wider uppercase">ROYAL PASS</h1>
+                </div>
+                <div class="text-left md:text-right">
+                    <span class="text-[10px] font-heading uppercase text-ash block">Sigil Code (Kode Booking)</span>
+                    <span id="pass-sigil" class="font-mono text-2xl text-gold font-bold tracking-widest">AMB-XXXXXX</span>
+                </div>
+            </div>
+
+            <!-- Status Banner & Tribute Simulator (Mock) -->
+            <div id="status-banner" class="mb-8 p-4 rounded border flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <span id="status-icon" class="text-2xl">⏳</span>
+                    <div>
+                        <div id="status-text" class="font-heading text-sm uppercase font-bold tracking-wider">Menunggu Tribute</div>
+                        <div id="status-desc" class="text-xs text-ash">Selesaikan pembayaran simulasi sebelum batas waktu habis.</div>
+                    </div>
+                </div>
+                <!-- Tombol Mock Payment (Simulasi Cepat 1-Klik) -->
+                <button id="btn-mock-pay" class="hidden gothic-glow-btn text-bone font-heading text-xs uppercase px-6 py-3 rounded tracking-widest font-bold whitespace-nowrap">
+                    ✦ Bayar Tribute (Simulasi 1-Klik)
+                </button>
+            </div>
+
+            <!-- Route & Train Details -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 bg-void border border-gold/30 rounded p-6 mb-6">
+                <!-- Origin -->
+                <div>
+                    <span class="text-[10px] uppercase font-heading text-ash block mb-1">Gerbang Keberangkatan</span>
+                    <span id="pass-origin-city" class="text-xl font-heading text-bone font-bold block">Jakarta</span>
+                    <span id="pass-origin-station" class="text-xs text-ash">Stasiun Gambir (GMR)</span>
+                    <div id="pass-departure-time" class="text-sm font-mono text-gold mt-2 font-bold">08:00 WIB</div>
+                </div>
+
+                <!-- Middle (Train info) -->
+                <div class="text-center flex flex-col items-center justify-center border-y md:border-y-0 md:border-x border-gold/20 py-4 md:py-0">
+                    <span id="pass-train-name" class="font-heading text-sm text-bone font-bold block">Argo Bromo Sovereign</span>
+                    <span id="pass-train-class" class="text-[10px] font-mono uppercase px-2.5 py-0.5 border rounded border-amber-400/40 text-amber-400 bg-amber-950/20 my-1.5">SOVEREIGN</span>
+                    <span class="text-xs text-gold">──────── ⚔ ────────▶</span>
+                </div>
+
+                <!-- Destination -->
+                <div class="text-left md:text-right">
+                    <span class="text-[10px] uppercase font-heading text-ash block mb-1">Gerbang Tujuan</span>
+                    <span id="pass-dest-city" class="text-xl font-heading text-bone font-bold block">Surabaya</span>
+                    <span id="pass-dest-station" class="text-xs text-ash">Stasiun Surabaya Gubeng (SGU)</span>
+                    <div id="pass-arrival-time" class="text-sm font-mono text-gold mt-2 font-bold">16:30 WIB</div>
+                </div>
+            </div>
+
+            <!-- Passengers & QR Representation -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+                
+                <!-- Passenger List (2 Cols) -->
+                <div class="md:col-span-2 space-y-3">
+                    <h3 class="font-heading text-xs uppercase tracking-widest text-gold border-b border-gold/20 pb-2">
+                        Daftar Jiwa Penumpang (Passengers)
+                    </h3>
+                    <div id="passenger-list" class="space-y-2"></div>
+                </div>
+
+                <!-- QR Code Mockup (1 Col) -->
+                <div class="flex flex-col items-center justify-center p-4 bg-void border border-gold/30 rounded text-center">
+                    <div class="w-32 h-32 border-2 border-dashed border-crystal/60 flex items-center justify-center p-2 mb-2 bg-obsidian">
+                        <div class="text-center">
+                            <span class="text-3xl text-crystal">☵</span>
+                            <div class="text-[8px] font-mono text-ash mt-1">SIGIL VERIFIED</div>
+                            <div id="qr-code-text" class="text-[9px] font-mono text-gold font-bold">AMB-XXXXXX</div>
+                        </div>
+                    </div>
+                    <span class="text-[10px] text-ash font-mono uppercase">Tunjukkan di Gerbang Masuk</span>
+                </div>
+
+            </div>
+
+            <!-- Footer Card & Cancel Action -->
+            <div class="border-t-2 border-gold/30 mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-ash gap-4">
+                <div>
+                    <span>Total Tribute: </span>
+                    <span id="pass-total-price" class="text-base font-mono text-gold font-bold">Rp 0</span>
+                    <span id="pass-method" class="text-[10px] text-ash block">Metode: Belum Dibayar</span>
+                </div>
+
+                <button id="btn-cancel-ticket" class="text-crimson-glow hover:text-red-400 font-heading uppercase tracking-wider text-xs underline">
+                    ✕ Lepaskan Perjalanan (Batalkan Tiket)
+                </button>
+            </div>
+
+        </div>
+
+    </main>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const sigilCode = urlParams.get('code') || 'AMB-ROYAL1';
+        const API_BASE = 'http://localhost:8080/api';
+        const token = localStorage.getItem('ambatrain_token');
+
+        let currentBooking = null;
+
+        async function loadTicket() {
+            try {
+                const headers = {};
+                if (token) headers['Authorization'] = `Bearer ${token}`;
+
+                const res = await fetch(`${API_BASE}/bookings/${sigilCode}`, { headers });
+                const data = await res.json();
+
+                if (!res.ok) {
+                    throw new Error(data.error?.message || 'Tiket tiada ditemukan');
+                }
+
+                currentBooking = data;
+                renderTicket(data);
+            } catch (err) {
+                document.getElementById('loading').innerHTML = `
+                    <div class="border border-crimson/50 bg-crimson/10 text-crimson-glow p-6 rounded text-center">
+                        <p class="font-heading font-bold">${err.message}</p>
+                        <a href="index.html" class="text-xs text-gold underline mt-3 block">Kembali ke Beranda</a>
+                    </div>
+                `;
+            }
+        }
+
+        function renderTicket(b) {
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('ticket-card').classList.remove('hidden');
+
+            document.getElementById('pass-sigil').innerText = b.sigil_code;
+            document.getElementById('qr-code-text').innerText = b.sigil_code;
+
+            document.getElementById('pass-origin-city').innerText = b.origin.city;
+            document.getElementById('pass-origin-station').innerText = `${b.origin.name} (${b.origin.code})`;
+            document.getElementById('pass-departure-time').innerText = new Date(b.schedule.departure_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+            document.getElementById('pass-train-name').innerText = b.train.name;
+            document.getElementById('pass-train-class').innerText = b.train.class.toUpperCase();
+
+            document.getElementById('pass-dest-city').innerText = b.destination.city;
+            document.getElementById('pass-dest-station').innerText = `${b.destination.name} (${b.destination.code})`;
+            document.getElementById('pass-arrival-time').innerText = new Date(b.schedule.arrival_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+            document.getElementById('pass-total-price').innerText = `Rp ${Number(b.total_price).toLocaleString('id-ID')}`;
+            document.getElementById('pass-method').innerText = `Metode: ${b.payment.method} ${b.payment.paid_at ? '· Tersegel pada ' + new Date(b.payment.paid_at).toLocaleString() : ''}`;
+
+            // Status Styling
+            const banner = document.getElementById('status-banner');
+            const icon = document.getElementById('status-icon');
+            const title = document.getElementById('status-text');
+            const desc = document.getElementById('status-desc');
+            const payBtn = document.getElementById('btn-mock-pay');
+            const cancelBtn = document.getElementById('btn-cancel-ticket');
+
+            if (b.status === 'paid') {
+                banner.className = 'mb-8 p-4 rounded border border-emerald-500/40 bg-emerald-950/20 text-emerald-400 flex flex-col sm:flex-row items-center justify-between gap-4';
+                icon.innerText = '✦';
+                title.innerText = 'TAKDIR TERSEGEL (SEALED)';
+                desc.innerText = 'Tribute telah diterima. Royal Pass ini sah untuk menaiki lokomotif.';
+                payBtn.classList.add('hidden');
+                cancelBtn.classList.remove('hidden');
+            } else if (b.status === 'held') {
+                banner.className = 'mb-8 p-4 rounded border border-amber-500/40 bg-amber-950/30 text-amber-400 flex flex-col sm:flex-row items-center justify-between gap-4';
+                icon.innerText = '⏳';
+                title.innerText = 'MENUNGGU TRIBUTE (AWAITING TRIBUTE)';
+                desc.innerText = `Kursi ditahan hingga ${new Date(b.expires_at).toLocaleTimeString()}. Selesaikan pembayaran simulasi.`;
+                payBtn.classList.remove('hidden');
+                cancelBtn.classList.remove('hidden');
+
+                // Trigger mock pay
+                payBtn.onclick = async () => {
+                    payBtn.disabled = true;
+                    payBtn.innerText = 'Menyegel Tribute...';
+                    try {
+                        const payRes = await fetch(`${API_BASE}/bookings/${b.booking_id}/pay`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify({ method: 'tribute_crystal' })
+                        });
+                        const payData = await payRes.json();
+                        if (payRes.ok) {
+                            alert('✦ Tribute Berhasil Diselesaikan! Status berubah menjadi SEALED.');
+                            window.location.reload();
+                        } else {
+                            alert('Gagal bayar: ' + (payData.error?.message || 'Error'));
+                            payBtn.disabled = false;
+                        }
+                    } catch (e) {
+                        alert('Error: ' + e.message);
+                        payBtn.disabled = false;
+                    }
+                };
+            } else if (b.status === 'cancelled') {
+                banner.className = 'mb-8 p-4 rounded border border-crimson/50 bg-crimson/10 text-crimson-glow flex flex-col sm:flex-row items-center justify-between gap-4';
+                icon.innerText = '✕';
+                title.innerText = 'PERJALANAN DILEPASKAN (FORSAKEN)';
+                desc.innerText = 'Pesanan ini telah dibatalkan dan kursi telah dikembalikan ke kabut.';
+                payBtn.classList.add('hidden');
+                cancelBtn.classList.add('hidden');
+            } else {
+                // Expired
+                banner.className = 'mb-8 p-4 rounded border border-ash/30 bg-void text-ash flex flex-col sm:flex-row items-center justify-between gap-4';
+                icon.innerText = '☠';
+                title.innerText = 'KEDALUWARSA (FADED TO DUST)';
+                desc.innerText = 'Waktu pembayaran telah habis. Silakan buat pesanan baru.';
+                payBtn.classList.add('hidden');
+                cancelBtn.classList.add('hidden');
+            }
+
+            // Render Passengers
+            const pList = document.getElementById('passenger-list');
+            pList.innerHTML = '';
+            b.passengers.forEach(p => {
+                const item = document.createElement('div');
+                item.className = 'flex items-center justify-between bg-void border border-gold/20 px-3 py-2 rounded text-xs';
+                item.innerHTML = `
+                    <div>
+                        <span class="font-bold text-bone block">${p.passenger_name}</span>
+                        <span class="text-[10px] text-ash font-mono">NIK: ${p.id_number}</span>
+                    </div>
+                    <div class="text-right">
+                        <span class="px-2 py-0.5 bg-crystal/20 border border-crystal text-crystal rounded font-mono font-bold">
+                            G${p.carriage_number} · Kursi ${p.seat_number}
+                        </span>
+                    </div>
+                `;
+                pList.appendChild(item);
+            });
+
+            // Cancel action
+            cancelBtn.onclick = async () => {
+                if (!confirm('Yakin ingin melepaskan perjalanan ini? Kursimu akan dikembalikan ke alam kabut.')) return;
+                try {
+                    const cRes = await fetch(`${API_BASE}/bookings/${b.booking_id}/cancel`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    if (cRes.ok) {
+                        alert('Perjalanan telah dibatalkan.');
+                        window.location.reload();
+                    } else {
+                        const cData = await cRes.json();
+                        alert('Gagal membatalkan: ' + (cData.error?.message || 'Error'));
+                    }
+                } catch (e) {
+                    alert('Error: ' + e.message);
+                }
+            };
+        }
+
+        loadTicket();
+    </script>
+</body>
+</html>
+

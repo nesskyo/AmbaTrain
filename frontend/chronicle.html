@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kronik Perjalanan — AmbaTrain Quest Log</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@500;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        void: '#0A0A0F',
+                        obsidian: '#12121A',
+                        midnight: '#1C1530',
+                        crimson: { DEFAULT: '#8B1A2B', glow: '#C42B45' },
+                        gold: { DEFAULT: '#C9A24B', light: '#E8D08A' },
+                        crystal: '#5EC8E5',
+                        bone: '#EDE6D6',
+                        ash: '#9A94A6'
+                    },
+                    fontFamily: {
+                        display: ['"Cinzel Decorative"', 'serif'],
+                        heading: ['Cinzel', 'serif'],
+                        body: ['"Cormorant Garamond"', 'serif'],
+                        ui: ['Inter', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #0A0A0F; color: #EDE6D6; font-family: 'Inter', sans-serif; }
+        .gothic-border { border: 1px solid #C9A24B; box-shadow: 0 0 20px rgba(201, 162, 75, 0.15); }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-crimson selection:text-white">
+
+    <!-- Header -->
+    <header class="border-b border-gold/30 bg-void/90 backdrop-blur-md sticky top-0 z-50 px-6 py-4">
+        <div class="max-w-4xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <a href="index.html" class="text-gold hover:text-crystal font-mono text-sm">◀ Ke Beranda</a>
+                <span class="text-ash">|</span>
+                <span class="font-display text-xl text-gold">AMBATRAIN</span>
+            </div>
+            <div>
+                <a href="index.html" class="text-xs uppercase font-heading text-gold border border-gold/40 px-3 py-1.5 rounded hover:bg-gold/10 transition">
+                    + Mulai Perjalanan Baru
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 max-w-4xl mx-auto w-full px-6 py-10">
+        
+        <div class="border-b border-gold/30 pb-4 mb-8">
+            <h1 class="font-display text-3xl text-bone tracking-wider uppercase mb-1">Kronik Perjalanan (The Chronicles)</h1>
+            <p class="font-body italic text-gold-light text-lg">"Every journey is a tragedy or a triumph. Behold thy path."</p>
+        </div>
+
+        <div id="loading" class="text-center py-20 text-gold font-body italic text-xl">
+            Membuka lembaran buku sejarah pengelana...
+        </div>
+
+        <!-- Chronicles List Container -->
+        <div id="chronicles-container" class="space-y-4 hidden"></div>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="text-center py-20 border border-gold/20 bg-obsidian rounded-lg p-8 hidden">
+            <div class="text-4xl text-gold mb-3">🕯</div>
+            <h2 class="font-heading text-xl text-bone mb-2">"Thy chronicle awaits its first page."</h2>
+            <p class="text-ash text-sm max-w-md mx-auto mb-6">Engkau belum mengikat sumpah pada lokomotif mana pun. Mulailah perjalanan pertamamu melintasi kerajaan.</p>
+            <a href="index.html" class="inline-block bg-crimson hover:bg-crimson-glow text-bone font-heading text-xs uppercase px-6 py-3 rounded tracking-wider transition border border-gold">
+                Cari Jadwal Kereta ✦
+            </a>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-gold/20 bg-void py-6 text-center text-xs text-ash font-heading tracking-widest">
+        AMBATRAIN &copy; 2026 — CHRONICLES OF PASSAGE
+    </footer>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+        let token = localStorage.getItem('ambatrain_token');
+
+        async function loadChronicles() {
+            if (!token) {
+                // Auto guest login prompt if token not found
+                const email = prompt('Masukkan email akun AmbaTrain untuk membuka Kronik:', 'traveler@ambatrain.com');
+                if (email) {
+                    try {
+                        const lRes = await fetch(`${API_BASE}/auth/login`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ email, password: 'Password123!' })
+                        });
+                        const lData = await lRes.json();
+                        if (lRes.ok) {
+                            token = lData.token;
+                            localStorage.setItem('ambatrain_token', token);
+                        }
+                    } catch (e) {}
+                }
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/bookings`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+
+                document.getElementById('loading').classList.add('hidden');
+
+                if (!res.ok) {
+                    throw new Error(data.error?.message || 'Gagal memuat kronik.');
+                }
+
+                if (!data || data.length === 0) {
+                    document.getElementById('empty-state').classList.remove('hidden');
+                    return;
+                }
+
+                const container = document.getElementById('chronicles-container');
+                container.classList.remove('hidden');
+                container.innerHTML = '';
+
+                data.forEach(item => {
+                    let badgeClass = 'text-ash border-ash/30 bg-void';
+                    let badgeText = item.status;
+                    let badgeIcon = '✦';
+
+                    if (item.status === 'paid') {
+                        badgeClass = 'text-emerald-400 border-emerald-400/40 bg-emerald-950/20';
+                        badgeText = '✦ SEALED (TERSEGEL)';
+                    } else if (item.status === 'held') {
+                        badgeClass = 'text-amber-400 border-amber-400/40 bg-amber-950/30';
+                        badgeText = '⏳ AWAITING TRIBUTE';
+                    } else if (item.status === 'cancelled') {
+                        badgeClass = 'text-crimson-glow border-crimson/50 bg-crimson/10';
+                        badgeText = '✕ FORSAKEN (BATAL)';
+                    } else if (item.status === 'expired') {
+                        badgeClass = 'text-ash/60 border-ash/20 bg-void/50';
+                        badgeText = '☠ FADED TO DUST';
+                    }
+
+                    const card = document.createElement('div');
+                    card.className = 'bg-obsidian border border-gold/30 rounded p-6 hover:border-gold transition flex flex-col md:flex-row items-start md:items-center justify-between gap-6';
+                    card.innerHTML = `
+                        <div class="space-y-2">
+                            <div class="flex items-center gap-3">
+                                <span class="font-mono text-gold font-bold tracking-widest text-base">${item.sigil_code}</span>
+                                <span class="text-[10px] font-mono uppercase px-2 py-0.5 border rounded ${badgeClass}">${badgeText}</span>
+                            </div>
+                            <div class="text-base font-heading text-bone font-bold">
+                                ${item.train_name} <span class="text-xs text-ash font-mono uppercase">(${item.train_class})</span>
+                            </div>
+                            <div class="text-xs text-ash flex items-center gap-2">
+                                <span>${item.origin_city}</span>
+                                <span class="text-gold">──▶</span>
+                                <span>${item.destination_city}</span>
+                                <span>· Berangkat: ${new Date(item.departure_at).toLocaleDateString([], {day: 'numeric', month: 'short', year: 'numeric'})}</span>
+                            </div>
+                            <div class="text-[11px] text-ash/80">
+                                Dipesan pada ${new Date(item.booked_at).toLocaleString()} · ${item.passenger_count} Jiwa
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col md:items-end w-full md:w-auto justify-between gap-3">
+                            <div class="text-lg font-mono text-gold font-bold">
+                                Rp ${Number(item.total_price).toLocaleString('id-ID')}
+                            </div>
+                            <a href="ticket.html?code=${item.sigil_code}" class="border border-gold/50 text-gold hover:bg-gold/10 font-heading text-xs uppercase px-4 py-2 rounded tracking-wider transition text-center">
+                                Buka Royal Pass ✦
+                            </a>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+
+            } catch (err) {
+                document.getElementById('loading').innerHTML = `
+                    <div class="border border-crimson/50 bg-crimson/10 text-crimson-glow p-6 rounded text-center">
+                        <p class="font-heading font-bold">${err.message}</p>
+                        <a href="index.html" class="text-xs text-gold underline mt-2 block">Masuk Kembali</a>
+                    </div>
+                `;
+            }
+        }
+
+        loadChronicles();
+    </script>
+</body>
+</html>
+

@@ -16,15 +16,22 @@
 #include "repositories/StationRepository.hpp"
 #include "repositories/ScheduleRepository.hpp"
 #include "repositories/SeatRepository.hpp"
+#include "repositories/BookingRepository.hpp"
+#include "repositories/PaymentRepository.hpp"
 
 // Services
 #include "services/AuthService.hpp"
 #include "services/ScheduleService.hpp"
+#include "services/BookingService.hpp"
+#include "services/PaymentService.hpp"
+#include "services/ExpiryWorker.hpp"
 
 // Controllers
 #include "controllers/AuthController.hpp"
 #include "controllers/StationController.hpp"
 #include "controllers/ScheduleController.hpp"
+#include "controllers/BookingController.hpp"
+#include "controllers/PaymentController.hpp"
 
 using namespace ambatrain;
 
@@ -62,7 +69,7 @@ int main() {
     if (!config.database_url.empty() && config.database_url.find("[YOUR-PASSWORD]") == std::string::npos) {
         try {
             std::cout << "[AmbaTrain] Connecting to Supabase PostgreSQL..." << std::endl;
-            db_pool = std::make_shared<config::DatabasePool>(config.database_url, 8);
+            db_pool = std::make_shared<config::DatabasePool>(config.database_url, 10);
         } catch (const std::exception& e) {
             std::cerr << "[AmbaTrain] Warning: Database connection initialization error: " << e.what() << std::endl;
         }
@@ -76,12 +83,23 @@ int main() {
     auto station_repo = std::make_shared<repositories::StationRepository>(db_pool);
     auto schedule_repo = std::make_shared<repositories::ScheduleRepository>(db_pool);
     auto seat_repo = std::make_shared<repositories::SeatRepository>(db_pool);
+    auto booking_repo = std::make_shared<repositories::BookingRepository>(db_pool);
+    auto payment_repo = std::make_shared<repositories::PaymentRepository>(db_pool);
 
     // 5. Inisialisasi Services
     auto auth_service = std::make_shared<services::AuthService>(user_repo, config);
     auto schedule_service = std::make_shared<services::ScheduleService>(schedule_repo, seat_repo);
+    auto booking_service = std::make_shared<services::BookingService>(booking_repo, config);
+    auto payment_service = std::make_shared<services::PaymentService>(payment_repo);
 
-    // 6. Inisialisasi Crow Web Application
+    // 6. Jalankan Background Expiry Worker (Melepas Kursi Kedaluwarsa tiap 60 detik)
+    std::unique_ptr<services::ExpiryWorker> expiry_worker;
+    if (db_pool) {
+        expiry_worker = std::make_unique<services::ExpiryWorker>(booking_repo, 60);
+        expiry_worker->start();
+    }
+
+    // 7. Inisialisasi Crow Web Application
     using AppType = crow::App<middleware::CorsMiddleware>;
     AppType app;
 
@@ -91,7 +109,7 @@ int main() {
         nlohmann::json resp = {
             {"realm", "AmbaTrain"},
             {"tagline", "All the world's a station, and all the men and women merely passengers."},
-            {"phase", "Phase 3 Complete (Schedules & Seat Layout)"},
+            {"phase", "Phase 5 Complete (Payment Simulation & Royal Pass Active)"},
             {"endpoints", {
                 {"healthcheck", "/api/health"},
                 {"register", "POST /api/auth/register"},
@@ -99,7 +117,12 @@ int main() {
                 {"profile", "GET /api/auth/me"},
                 {"stations", "GET /api/stations"},
                 {"schedules", "GET /api/schedules?from=1&to=8&date=YYYY-MM-DD&pax=2"},
-                {"seat_map", "GET /api/schedules/:id/seats"}
+                {"seat_map", "GET /api/schedules/:id/seats"},
+                {"bookings", "POST /api/bookings"},
+                {"pay_tribute", "POST /api/bookings/:id/pay"},
+                {"cancel_booking", "POST /api/bookings/:id/cancel"},
+                {"royal_pass", "GET /api/bookings/:code"},
+                {"chronicles", "GET /api/bookings"}
             }}
         };
         return utils::ResponseUtils::success(resp);
@@ -147,6 +170,8 @@ int main() {
             {"status", is_healthy ? "healthy" : (db_pool ? "degraded" : "standalone")},
             {"service", "AmbaTrain C++ REST Engine"},
             {"version", "1.0.0"},
+            {"anti_double_booking", "Active (Row Locking + Partial Unique Index)"},
+            {"payment_engine", "Mock Simulation (Tribute)"},
             {"database", db_status},
             {"config", {
                 {"port", config.port},
@@ -159,7 +184,7 @@ int main() {
         return utils::ResponseUtils::success(response, 200);
     });
 
-    // 7. Daftarkan Controller Routes
+    // 8. Daftarkan Controller Routes
     controllers::AuthController<AppType> auth_controller(auth_service, config);
     auth_controller.register_routes(app);
 
@@ -169,10 +194,21 @@ int main() {
     controllers::ScheduleController<AppType> schedule_controller(schedule_service);
     schedule_controller.register_routes(app);
 
-    // 8. Start Crow Server
-    std::cout << "[AmbaTrain] Phase 1, 2 & 3 routes registered." << std::endl;
-    std::cout << "[AmbaTrain] Ready to embark on port " << config.port << "..." << std::endl;
+    controllers::BookingController<AppType> booking_controller(booking_service, config);
+    booking_controller.register_routes(app);
+
+    controllers::PaymentController<AppType> payment_controller(payment_service, config);
+    payment_controller.register_routes(app);
+
+    // 9. Start Crow Server
+    std::cout << "[AmbaTrain] Phase 1 through 5 routes registered successfully." << std::endl;
+    std::cout << "[AmbaTrain] Embarking on port " << config.port << "..." << std::endl;
     app.port(config.port).multithreaded().run();
+
+    // Clean stop worker on exit
+    if (expiry_worker) {
+        expiry_worker->stop();
+    }
 
     return 0;
 }
