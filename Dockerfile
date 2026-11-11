@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     cmake \
     git \
+    libasio-dev \
     libpq-dev \
     libpqxx-dev \
     libsodium-dev \
@@ -35,7 +36,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y \
     libpq5 \
-    libpqxx-6.4 \
+    libpqxx-dev \
     libsodium23 \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
@@ -51,4 +52,3 @@ ENV SERVER_HOST=0.0.0.0
 EXPOSE 8080
 
 CMD ["/app/ambatrain"]
-

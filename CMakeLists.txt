@@ -38,7 +38,7 @@ if(NOT Crow_FOUND)
 endif()
 
 # ----------------------------------------------------------------------------
-# 3. Dependensi Database & Keamanan: libpqxx, jwt-cpp, libsodium
+# 3. Dependensi Database & Keamanan: libpqxx & libsodium
 # ----------------------------------------------------------------------------
 find_package(libpqxx CONFIG QUIET)
 find_package(jwt-cpp CONFIG QUIET)
@@ -62,9 +62,18 @@ if(SRC_FILES)
         target_link_libraries(ambatrain PRIVATE Crow::Crow)
     endif()
 
-    # Link libpqxx jika ditemukan
+    # Link libpqxx (dukung CMake Target dan Direct Library untuk Ubuntu/Linux)
     if(TARGET libpqxx::pqxx)
         target_link_libraries(ambatrain PRIVATE libpqxx::pqxx)
+    else()
+        find_library(LIBPQXX_LIB pqxx)
+        find_library(LIBPQ_LIB pq)
+        if(LIBPQXX_LIB)
+            target_link_libraries(ambatrain PRIVATE ${LIBPQXX_LIB})
+            if(LIBPQ_LIB)
+                target_link_libraries(ambatrain PRIVATE ${LIBPQ_LIB})
+            endif()
+        endif()
     endif()
 
     # Link jwt-cpp jika ditemukan
@@ -72,14 +81,24 @@ if(SRC_FILES)
         target_link_libraries(ambatrain PRIVATE jwt-cpp::jwt-cpp)
     endif()
 
-    # Link libsodium jika ditemukan
+    # Link libsodium (dukung CMake Target dan Direct Library)
     if(TARGET libsodium::libsodium)
         target_link_libraries(ambatrain PRIVATE libsodium::libsodium)
+    else()
+        find_library(LIBSODIUM_LIB sodium)
+        if(LIBSODIUM_LIB)
+            target_link_libraries(ambatrain PRIVATE ${LIBSODIUM_LIB})
+        endif()
     endif()
 
     # Windows socket & security libraries jika menggunakan MinGW
     if(WIN32)
         target_link_libraries(ambatrain PRIVATE ws2_32 wsock32 crypt32)
+    endif()
+
+    # Linux pthread
+    if(UNIX AND NOT APPLE)
+        target_link_libraries(ambatrain PRIVATE pthread)
     endif()
 endif()
 
