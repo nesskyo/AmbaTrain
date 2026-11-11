@@ -179,10 +179,11 @@
 
     </main>
 
+    <script src="js/config.js"></script>
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const sigilCode = urlParams.get('code') || 'AMB-ROYAL1';
-        const API_BASE = 'http://localhost:8080/api';
+        const API_BASE = window.API_BASE || 'http://localhost:8080/api';
         const token = localStorage.getItem('ambatrain_token');
 
         let currentBooking = null;

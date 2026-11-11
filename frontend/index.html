@@ -160,12 +160,13 @@
         <p class="font-body text-sm italic">"Better three hours too soon than a minute too late."</p>
     </footer>
 
+    <script src="js/config.js"></script>
     <script>
         // Set tanggal default hari ini
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('date-input').value = today;
 
-        const API_BASE = 'http://localhost:8080/api';
+        const API_BASE = window.API_BASE || 'http://localhost:8080/api';
 
         document.getElementById('search-form').addEventListener('submit', async (e) => {
             e.preventDefault();

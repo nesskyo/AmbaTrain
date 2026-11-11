@@ -89,8 +89,9 @@
         AMBATRAIN &copy; 2026 — CHRONICLES OF PASSAGE
     </footer>
 
+    <script src="js/config.js"></script>
     <script>
-        const API_BASE = 'http://localhost:8080/api';
+        const API_BASE = window.API_BASE || 'http://localhost:8080/api';
         let token = localStorage.getItem('ambatrain_token');
 
         async function loadChronicles() {

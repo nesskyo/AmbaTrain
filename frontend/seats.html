@@ -151,11 +151,12 @@
         </div>
     </main>
 
+    <script src="js/config.js"></script>
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const scheduleId = urlParams.get('schedule_id') || '1';
         const requiredPax = parseInt(urlParams.get('pax') || '1', 10);
-        const API_BASE = 'http://localhost:8080/api';
+        const API_BASE = window.API_BASE || 'http://localhost:8080/api';
 
         let seatMapData = null;
         let selectedSeats = []; // [{ seat_id, seat_number, carriage_number }]
